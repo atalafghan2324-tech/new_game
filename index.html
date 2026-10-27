@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pashto ⇄ English Dictionary</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--tx:#1f2a24;--mu:#6b756f;--ac:#1d6b4a;--ln:#e2ded3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121815;--card:#1b231f;--tx:#e9efeb;--mu:#93a19a;--ac:#4fc08d;--ln:#2d3832}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:8px 0 2px}
+.sub{color:var(--mu);margin:0 0 14px;font-size:.9rem}
+.bar{display:flex;gap:8px;align-items:center}
+.dir{flex:1;display:flex;border:1px solid var(--ln);border-radius:12px;overflow:hidden;background:var(--card)}
+.dir button{flex:1;border:0;background:none;color:var(--tx);padding:10px;font:inherit;cursor:pointer}
+.dir button.on{background:var(--ac);color:#fff}
+input,textarea{width:100%;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;background:var(--card);color:var(--tx);font:inherit;margin-top:10px}
+input:focus{outline:2px solid var(--ac)}
+.ps{font-family:"Noto Naskh Arabic","Segoe UI","Noto Sans Arabic",Tahoma,serif;direction:rtl}
+.item{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.main{font-size:1.15rem;font-weight:600}
+.alt{color:var(--mu);font-size:.9rem}
+.big{font-size:1.5rem}
+.acts button,.btn{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:10px;padding:6px 10px;cursor:pointer;font:inherit;font-size:.85rem}
+.btn.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.row input{flex:1;min-width:120px;margin-top:0}
+details{margin-top:18px;background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600}
+.stat{color:var(--mu);font-size:.85rem;margin-top:10px}
+.empty{text-align:center;color:var(--mu);padding:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Pashto ⇄ English</h1>
+  <p class="sub">Offline dictionary · <span id="count">0</span> words</p>
+  <div class="bar">
+    <div class="dir"><button id="d1" class="on">English → پښتو</button><button id="d2">پښتو → English</button></div>
+  </div>
+  <input id="q" type="search" placeholder="Type a word…" autocomplete="off">
+  <div id="res"></div>
+  <div class="stat" id="stat"></div>
+
+  <details>
+    <summary>Add a word</summary>
+    <div class="row">
+      <input id="aE" placeholder="English">
+      <input id="aP" class="ps" placeholder="پښتو">
+      <input id="aR" placeholder="Pronunciation (optional)">
+    </div>
+    <div class="row"><button class="btn p" id="add">Add word</button></div>
+  </details>
+
+  <details>
+    <summary>Import / export (grow to 2,000+ words)</summary>
+    <p class="alt">Paste lines in the form <b>english, پښتو, pronunciation</b> (comma, tab or | separated), or choose a .csv / .txt / .json file.</p>
+    <textarea id="bulk" rows="5" placeholder="water, اوبه, oba"></textarea>
+    <div class="row">
+      <button class="btn p" id="imp">Import pasted</button>
+      <input type="file" id="file" accept=".csv,.txt,.json" style="margin:0;flex:1">
+      <button class="btn" id="exp">Export my words</button>
+      <button class="btn" id="clr">Clear my words</button>
+    </div>
+  </details>
+</div>
+
+<script>
+const BASE=`hello|سلام|salaam
+goodbye|خدای پامان|khudai paman
+welcome|ښه راغلاست|kha raghlast
+thank you|مننه|manana
+please|مهرباني وکړئ|mehrabani wukrai
+sorry|بخښنه|bakhkhana
+yes|هو|ho
+no|نه|na
+how are you|ته څنګه یې|ta tsanga ye
+I am fine|زه ښه یم|za kha yam
+help|مرسته|marsta
+water|اوبه|oba
+bread|ډوډۍ|dodai
+food|خواړه|khwaare
+milk|شیدې|shide
+tea|چای|chai
+salt|مالګه|malga
+apple|مڼه|mana
+house|کور|kor
+book|کتاب|kitab
+school|ښوونځی|khowunzai
+teacher|ښوونکی|khowunkai
+student|زده کوونکی|zda kawunkai
+father|پلار|plar
+mother|مور|mor
+brother|ورور|wror
+sister|خور|khor
+son|زوی|zoi
+daughter|لور|lur
+friend|ملګری|malgarai
+man|سړی|saray
+woman|ښځه|khza
+child|ماشوم|mashoom
+boy|هلک|halak
+girl|نجلۍ|njlai
+day|ورځ|wradz
+night|شپه|shpa
+morning|سهار|sahar
+sun|لمر|lmar
+moon|سپوږمۍ|spogmai
+star|ستوری|storay
+sky|اسمان|asman
+earth|ځمکه|dzmaka
+mountain|غر|ghar
+river|سیند|sind
+tree|ونه|wna
+flower|ګل|gul
+fire|اور|or
+rain|باران|baran
+snow|واورې|wawre
+wind|باد|bad
+one|یو|yo
+two|دوه|dwa
+three|درې|dre
+four|څلور|tsalor
+five|پنځه|pindza
+six|شپږ|shpag
+seven|اوه|owa
+eight|اته|ata
+nine|نهه|nuh
+ten|لس|las
+big|لوی|lway
+small|وړوکی|wrukai
+good|ښه|kha
+bad|بد|bad
+new|نوی|nway
+old|زوړ|zwar
+beautiful|ښکلی|khkulay
+hot|تود|tod
+cold|ساړه|sarra
+red|سور|sur
+white|سپین|speen
+black|تور|tor
+green|شین|sheen
+yellow|ژېړ|zhayr
+eat|خوړل|khwral
+drink|څښل|tskhal
+go|تلل|tlal
+come|راتلل|ratlal
+see|لیدل|lidal
+say|ویل|wayal
+write|لیکل|likal
+read|لوستل|lwastal
+sleep|خوب کول|khob kawal
+love|مینه|mena
+heart|زړه|zra
+eye|سترګه|stərga
+hand|لاس|las
+head|سر|sar
+foot|پښه|pkha
+ear|غوږ|ghwag
+mouth|خوله|khwla
+name|نوم|num
+country|هیواد|hewad
+city|ښار|khar
+village|کلی|kalay
+road|لار|lar
+market|بازار|bazar
+money|پیسې|pise
+time|وخت|wakht
+year|کال|kal
+month|میاشت|miasht
+week|اونۍ|wunai
+today|نن|nan
+tomorrow|سبا|sabaa
+yesterday|پرون|parun
+here|دلته|dalta
+there|هلته|halta
+I|زه|za
+you|ته|ta
+he|هغه|hagha
+we|موږ|mung
+what|څه|tsa
+where|چېرته|chirta
+when|کله|kala
+why|ولې|wale
+who|څوک|tsok
+how|څنګه|tsanga
+horse|اس|as
+dog|سپی|spay
+cat|پیشو|pishu
+bird|مرغه|murgha
+car|موټر|motar
+doctor|ډاکټر|daktar
+hospital|روغتون|roghtun
+God|خدای|khudai
+peace|سوله|sola
+freedom|آزادي|azadi
+language|ژبه|zhba
+word|کلمه|kalima`;
+
+const KEY="pashto_dict_user_v1";
+let user=[];try{user=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){user=[]}
+const parse=t=>t.split(/\n/).map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split(/\||\t|,/).map(s=>s.trim());return p.length>=2&&p[0]&&p[1]?{e:p[0],p:p[1],r:p[2]||""}:null}).filter(Boolean);
+const base=parse(BASE);
+const all=()=>base.concat(user);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(user))}catch(e){}};
+const normP=s=>s.replace(/[\u064B-\u065F\u0670]/g,"").replace(/ي|ې|ۍ|ی/g,"ی").replace(/ك/g,"ک").toLowerCase();
+const normE=s=>s.toLowerCase();
+let dir="en";
+const $=id=>document.getElementById(id);
+
+function render(){
+  const q=$("q").value.trim(),D=all();
+  $("count").textContent=D.length;
+  const f=dir==="en"?normE:normP;
+  const key=dir==="en"?"e":"p";
+  let list=D;
+  if(q){
+    const n=f(q);
+    const score=w=>{const v=f(w[key]);return v===n?0:v.startsWith(n)?1:v.includes(n)?2:(dir==="ps"&&w.r.toLowerCase().includes(n))?3:9};
+    list=D.map(w=>[score(w),w]).filter(x=>x[0]<9).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  }else list=D.slice().sort((a,b)=>a.e.localeCompare(b.e));
+  list=list.slice(0,100);
+  $("res").innerHTML=list.length?list.map(w=>{
+    const src=dir==="en"?w.e:w.p,out=dir==="en"?w.p:w.e;
+    const sc=dir==="en"?"":" ps",oc=dir==="en"?" ps big":"";
+    const i=D.indexOf(w);
+    return `<div class="item"><div><div class="alt${sc}">${esc(src)}</div><div class="main${oc}">${esc(out)}</div><div class="alt">${esc(w.r)}</div></div><div class="acts"><button data-s="${i}" aria-label="Speak English">🔊</button> <button data-c="${i}">Copy</button></div></div>`}).join(""):`<div class="empty">No match found. You can add this word below.</div>`;
+  $("stat").textContent=q?`${list.length} result(s)`:`Showing first ${list.length} words — search to find more`;
+}
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+$("q").oninput=render;
+$("d1").onclick=()=>{dir="en";$("d1").className="on";$("d2").className="";$("q").className="";$("q").placeholder="Type an English word…";render()};
+$("d2").onclick=()=>{dir="ps";$("d2").className="on";$("d1").className="";$("q").className="ps";$("q").placeholder="پښتو لفظ ولیکئ…";render()};
+$("res").onclick=e=>{
+  const b=e.target.closest("button");if(!b)return;
+  const D=all();
+  if(b.dataset.s){try{const u=new SpeechSynthesisUtterance(D[b.dataset.s].e);u.lang="en-US";speechSynthesis.cancel();speechSynthesis.speak(u)}catch(x){}}
+  if(b.dataset.c){const w=D[b.dataset.c];const t=dir==="en"?w.p:w.e;try{navigator.clipboard.writeText(t);b.textContent="Copied"}catch(x){b.textContent="—"}setTimeout(()=>b.textContent="Copy",1000)}
+};
+$("add").onclick=()=>{
+  const e=$("aE").value.trim(),p=$("aP").value.trim();if(!e||!p)return;
+  user.push({e,p,r:$("aR").value.trim()});save();
+  $("aE").value=$("aP").value=$("aR").value="";render();
+};
+function importText(t){
+  let items=[];
+  try{const j=JSON.parse(t);if(Array.isArray(j))items=j.map(x=>({e:x.e||x.english||x[0],p:x.p||x.pashto||x[1],r:x.r||x.roman||x[2]||""})).filter(x=>x.e&&x.p)}catch(x){items=parse(t)}
+  const seen=new Set(all().map(w=>w.e.toLowerCase()+"|"+w.p));
+  items=items.filter(w=>!seen.has(w.e.toLowerCase()+"|"+w.p));
+  user=user.concat(items);save();render();
+  $("stat").textContent=`Imported ${items.length} new word(s).`;
+}
+$("imp").onclick=()=>{importText($("bulk").value);$("bulk").value=""};
+$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importText(r.result);r.readAsText(f,"utf-8")};
+$("exp").onclick=()=>{
+  const t=user.map(w=>[w.e,w.p,w.r].join(", ")).join("\n");
+  try{navigator.clipboard.writeText(t);$("stat").textContent=`Copied ${user.length} custom word(s) to clipboard.`}catch(x){$("bulk").value=t}
+};
+$("clr").onclick=()=>{if(user.length&&confirm("Remove all words you added?")){user=[];save();render()}};
+render();
+</script>
+</body>
+</html>
